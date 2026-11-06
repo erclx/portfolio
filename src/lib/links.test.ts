@@ -12,7 +12,7 @@ describe('isOutbound', () => {
   })
 
   it('should treat a mailto handoff as internal', () => {
-    expect(isOutbound('mailto:me@erclx.dev')).toBe(false)
+    expect(isOutbound('mailto:me@erclx.com')).toBe(false)
   })
 })
 
@@ -24,7 +24,7 @@ describe('getLinkTargetAttributes', () => {
   })
 
   it('should pair every new-tab target with the noopener relationship', () => {
-    const attributes = getLinkTargetAttributes('https://jobtriage.erclx.dev')
+    const attributes = getLinkTargetAttributes('https://jobtriage.erclx.com')
 
     expect(attributes.rel).toBe('noopener')
   })

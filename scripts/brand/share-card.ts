@@ -104,7 +104,7 @@ try {
           <div style="display:flex;flex-direction:column;gap:22px">
             <p style="margin:0;font-family:var(--font-display);font-size:44px;
               line-height:1.2;color:var(--foreground);max-width:22ch">${CLAIM}</p>
-            <p style="margin:0;font-size:23px;color:var(--muted-foreground)">Eric Le · erclx.dev</p>
+            <p style="margin:0;font-size:23px;color:var(--muted-foreground)">Eric Le · erclx.com</p>
           </div>
         </div>
       </div>`,

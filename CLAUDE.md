@@ -1,6 +1,6 @@
-# erclx.dev
+# erclx.com
 
-Personal landing site. Astro v6 static build with Tailwind v4, deployed to Cloudflare Pages at https://erclx.dev.
+Personal landing site. Astro v6 static build with Tailwind v4, deployed to Cloudflare Pages at https://erclx.com.
 
 ## Context
 
