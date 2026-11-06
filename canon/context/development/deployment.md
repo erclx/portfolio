@@ -7,7 +7,7 @@ description: Cloudflare Pages Direct Upload, production and preview deploys, cus
 
 ## Overview
 
-Owns how a built site reaches erclx.dev. The `deploy` job in `.github/workflows/verify.yml` uploads the `dist/` artifact `build-verify` produced to the Direct Upload Pages project `erclx-dev`, so Cloudflare never builds. A push to `main` deploys to production, and a dispatch from any other ref deploys to a `<hash>.erclx-dev.pages.dev` preview.
+Owns how a built site reaches erclx.com. The `deploy` job in `.github/workflows/verify.yml` uploads the `dist/` artifact `build-verify` produced to the Direct Upload Pages project `erclx-dev`, so Cloudflare never builds. A push to `main` deploys to production, and a dispatch from any other ref deploys to a `<hash>.erclx-dev.pages.dev` preview.
 
 The apex and `www` are custom domains on that project, and a Redirect Rule on the zone sends `www` to the apex with a 301. Cloudflare Web Analytics runs from the zone, so no beacon code lives in this repository. A deploy by hand reads `CLOUDFLARE_ACCOUNT_ID` and `CLOUDFLARE_API_TOKEN` from `.env`.
 
@@ -22,7 +22,7 @@ bunx wrangler pages deploy ./dist --project-name=erclx-dev --branch=main
 
 Holds files served verbatim at the domain root, so a file placed here is a public URL the moment it ships.
 
-- `resume.pdf` serves at `erclx.dev/resume.pdf`, and readers reach it through the `/resume` route, whose tab carries the site's icon where the bare PDF cannot
+- `resume.pdf` serves at `erclx.com/resume.pdf`, and readers reach it through the `/resume` route, whose tab carries the site's icon where the bare PDF cannot
 - The résumé is an exported copy, so it goes stale silently when the source changes
 - The route draws the PDF's pages from images in `src/assets/resume/`, so a sync reruns `bun run resume-pages`, which needs `pdftoppm` from `poppler-utils`
 - The rendered suite fails on a PDF whose hash differs from the one that run recorded

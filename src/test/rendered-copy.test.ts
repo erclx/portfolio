@@ -622,10 +622,10 @@ describe('the closing ask', () => {
   })
 
   it('hands the email to the mail client in the current tab', () => {
-    const selector = '#looking-for a[href="mailto:me@erclx.dev"]'
+    const selector = '#looking-for a[href="mailto:me@erclx.com"]'
 
     expect(queryAll(home, selector)).toHaveLength(1)
-    expect(textOf(home, selector)).toBe('me@erclx.dev')
+    expect(textOf(home, selector)).toBe('me@erclx.com')
     expect(attributeOf(home, selector, 'target')).toBeNull()
   })
 
