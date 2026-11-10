@@ -52,13 +52,19 @@ Holds the Playwright suite and the screenshot harness. The specs cover only what
 - `playwright.config.ts` runs all three engines under reduced motion and serves the build on 4250 plus the offset, clear of `astro dev`
 - `screenshot.ts` departs from the toolkit seed, so a tooling sync conflicts there, and `capture/cases.ts` is this project's capture file
 - A case flagged `evidence` writes 320 and 1280 frames under `.github/evidence/surfaces/`, and the full sweep goes to the ignored `screenshots/`
-- A case naming sections writes a frame per section and no whole-page one, narrowed by `SCREENSHOT_SECTIONS`, and a route case keeps its one frame
+- A case naming sections writes a frame per section only, a route case keeps its one frame, and `SCREENSHOT_SECTIONS` takes either name, so `resume` selects the résumé frames
 - `cases.ts` loads lazy images eagerly and drops an empty `src`, and the home cases mask `[data-updated]`, so a rebuild alone shows no diff
+
+Two bare captures of one tree write the same frames, because the harness settles three things before it keeps one.
+
+- Every image and video poster is decoded first, since `decoding="async"` let a card poster or a logo paint late
+- The pointer is parked outside the page, since a hovered card crossfaded its poster mid-shot
+- A frame is retaken until two consecutive shots match and feeds both copies, since rounded edges drifted. The résumé 320 frame still flipped a level in one capture of twenty
 
 ## Gotchas
 
 - A dispatch from a feature branch deploys to a preview host, since `--branch` reads the ref, so only `main` reaches the apex
 - `deploy` keeps its Node and Bun setup though it builds nothing, since wrangler-action installs wrangler with the lockfile's package manager
 - A commit pushed by `github-actions[bot]` holds its pull request's runs for a maintainer's approval, so no workflow here pushes commits
-- Run `bun run pr-evidence-screenshot [section...]` after a visual change, naming the sections it touched, and `bun run readme-screenshot` after a header change, then commit the frames
+- Run `bun run pr-evidence-screenshot [section...]` after a visual change, naming the sections or routes it touched, and `bun run readme-screenshot` after a header change, then commit the frames
 - `bun run test:e2e` runs all three engines locally, so pass `--project` only to reproduce a failure an engine reported
