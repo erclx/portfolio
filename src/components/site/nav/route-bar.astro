@@ -10,9 +10,12 @@ interface Props {
   // The route's sections after its opening, since the name above already
   // returns a reader to the top.
   items: readonly { readonly id: string; readonly label: string }[]
+  // A page with nothing to scroll names itself in plain text, since a crumb
+  // that returns to the top of a page one screen tall does nothing.
+  scrolls?: boolean
 }
 
-const { here, items } = Astro.props
+const { here, items, scrolls = true } = Astro.props
 ---
 
 {
@@ -69,14 +72,22 @@ const { here, items } = Astro.props
           reads as `Eric Le /`, and it is the part that gives way when a long
           name meets the menu and the toggle on a phone. */
       }
-      <button
-        type="button"
-        data-route-here
-        aria-label={`Back to top of ${here}`}
-        class="text-foreground inline-flex min-h-11 min-w-0 cursor-pointer items-center underline-offset-4 hover:underline"
-      >
-        <span class="truncate">{here}</span>
-      </button>
+      {
+        scrolls ? (
+          <button
+            type="button"
+            data-route-here
+            aria-label={`Back to top of ${here}`}
+            class="text-foreground inline-flex min-h-11 min-w-0 cursor-pointer items-center underline-offset-4 hover:underline"
+          >
+            <span class="truncate">{here}</span>
+          </button>
+        ) : (
+          <span class="text-foreground inline-flex min-h-11 min-w-0 items-center">
+            <span class="truncate">{here}</span>
+          </span>
+        )
+      }
     </div>
     {
       /* A route with one section has nothing to jump between, and an empty
