@@ -17,7 +17,7 @@ concurrency:
 env:
   # Origin for canonical and Open Graph URLs. astro.config.mjs falls back to an
   # unresolvable placeholder when unset, and build-verify's output is what deploys.
-  ASTRO_SITE: https://erclx.dev
+  ASTRO_SITE: https://erclx.com
 
 jobs:
   static-checks:

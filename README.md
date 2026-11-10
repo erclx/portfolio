@@ -5,15 +5,15 @@
   </picture>
 </p>
 
-<h1 align="center">erclx.dev</h1>
+<h1 align="center">erclx.com</h1>
 
-<p align="center"><a href="https://github.com/erclx/erclx.dev/actions/workflows/verify.yml?query=branch%3Amain"><img src="https://github.com/erclx/erclx.dev/actions/workflows/verify.yml/badge.svg?branch=main" alt="Verify status"></a></p>
+<p align="center"><a href="https://github.com/erclx/portfolio/actions/workflows/verify.yml?query=branch%3Amain"><img src="https://github.com/erclx/portfolio/actions/workflows/verify.yml/badge.svg?branch=main" alt="Verify status"></a></p>
 
-<p align="center"><a href="https://erclx.dev"><b>erclx.dev</b></a></p>
+<p align="center"><a href="https://erclx.com"><b>erclx.com</b></a></p>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset=".github/evidence/readme/dark.png">
-  <img src=".github/evidence/readme/light.png" alt="The erclx.dev header: a name, a line about the work, three contact links, and a circular portrait over a contour field">
+  <img src=".github/evidence/readme/light.png" alt="The erclx.com header: a name, a line about the work, three contact links, and a circular portrait over a contour field">
 </picture>
 
 ## About
