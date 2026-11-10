@@ -13,7 +13,7 @@ The workflows install Node 22 before Bun, since Astro 6 and Vitest 5 need Node 2
 
 ### Runner image
 
-The `e2e-tests` job pins `runs-on: ubuntu-24.04` while every other job tracks `ubuntu-latest`. Playwright 1.59 refuses to install a browser on Ubuntu 26.04, so the pin lifts when Playwright is next bumped.
+Every job tracks `ubuntu-latest`, `e2e-tests` included. Playwright 1.59 refused to install a browser on Ubuntu 26.04, so the job was pinned to `ubuntu-24.04` until Playwright 1.65 lifted it.
 
 ### Dependency updates
 
