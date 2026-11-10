@@ -301,6 +301,13 @@ describe('the 404 page', () => {
     )
   })
 
+  it('offers no control that scrolls a page with nothing to scroll', () => {
+    const doc = readNotFound()
+
+    expect(textOf(doc, 'header')).toContain('Not found')
+    expect(queryAll(doc, '[data-route-here]')).toHaveLength(0)
+  })
+
   it('does not claim the landing page as its address', () => {
     const doc = readNotFound()
     const address = new URL(meta(doc, 'meta[property="og:url"]') ?? '')
