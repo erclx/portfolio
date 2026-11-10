@@ -154,6 +154,34 @@ const SETTLE_TIMEOUT = 15_000
 const FLOATING_ATTRIBUTE = 'data-capture-floating'
 
 /**
+ * Waits until every image, and every video poster, is decoded. An image
+ * reports `complete` once its bytes arrive, but Astro marks its images
+ * `decoding="async"`, so the first paint can land before the decode and show
+ * an empty plate or a lower-quality resample. Which frames caught that varied
+ * from run to run.
+ */
+async function decodeImages(page: Page) {
+  await page.evaluate(async (timeout) => {
+    const sources = [
+      ...document.images,
+      ...[...document.querySelectorAll<HTMLVideoElement>('video[poster]')].map(
+        (video) => {
+          const image = new Image()
+          image.src = video.poster
+          return image
+        },
+      ),
+    ]
+    const bounded = (image: HTMLImageElement) =>
+      Promise.race([
+        image.decode().catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, timeout)),
+      ])
+    await Promise.all(sources.map(bounded))
+  }, SETTLE_TIMEOUT)
+}
+
+/**
  * Brings the page to the state a reader arrives at, before anything is shot.
  * A figure gated on an IntersectionObserver and a frame marked `loading=lazy`
  * both stay at their start state until something scrolls past them, and a full
@@ -213,6 +241,7 @@ async function settle(
     undefined,
     { timeout: SETTLE_TIMEOUT },
   )
+  await decodeImages(page)
   return present
 }
 
@@ -314,6 +343,10 @@ for (const { captureCase, viewport, label } of RUNS) {
 
   await page.goto(`${BASE_URL}${captureCase.route}`)
   await page.waitForLoadState('networkidle')
+  // A pointer resting in the page hovers whatever scrolls under it, and the
+  // hover crossfades a card's poster while a frame is being shot. Parked
+  // outside the viewport it hovers nothing, however the page scrolls.
+  await page.mouse.move(-1, -1)
 
   const named = (captureCase.sections ?? []).filter(
     ({ name }) => sectionTerms.length === 0 || sectionTerms.includes(name),
