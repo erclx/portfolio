@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { chromium } from '@playwright/test'
 import { existsSync } from 'fs'
-import { mkdir } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
@@ -88,10 +88,17 @@ const sectionTerms = SCREENSHOT_SECTIONS.split(',')
   .map((term) => term.trim())
   .filter(Boolean)
 
+/**
+ * A name a narrowed run accepts is either a section of a case that names
+ * sections, or the `section` of a case that names none, which is a route
+ * captured whole in one frame.
+ */
 const SECTION_NAMES = [
   ...new Set(
     CASES.flatMap((captureCase) =>
-      (captureCase.sections ?? []).map((section) => section.name),
+      captureCase.sections === undefined
+        ? [captureCase.section]
+        : captureCase.sections.map((section) => section.name),
     ),
   ),
 ]
@@ -109,7 +116,16 @@ if (unknownSections.length > 0) {
   process.exit(1)
 }
 
-/** A case with no sections has nothing a section filter could name, so a narrowed run skips it. */
+/**
+ * A case naming sections is selected by a section name it carries, and a case
+ * naming none by its own `section`, so a route is nameable the way a home
+ * section is.
+ */
+const selectedBySection = (captureCase: CaptureCase): boolean =>
+  captureCase.sections === undefined
+    ? sectionTerms.includes(captureCase.section)
+    : captureCase.sections.some(({ name }) => sectionTerms.includes(name))
+
 const FILTERED_RUNS =
   filterTerms.length > 0
     ? ALL_RUNS.filter((run) =>
@@ -119,7 +135,7 @@ const FILTERED_RUNS =
 
 const RUNS =
   sectionTerms.length > 0
-    ? FILTERED_RUNS.filter((run) => (run.captureCase.sections ?? []).length > 0)
+    ? FILTERED_RUNS.filter((run) => selectedBySection(run.captureCase))
     : FILTERED_RUNS
 
 if ((filterTerms.length > 0 || sectionTerms.length > 0) && RUNS.length === 0) {
@@ -136,6 +152,34 @@ const SETTLE_TIMEOUT = 15_000
 
 /** Marks the chrome a section frame drops, set on the page and read by the screenshot's own stylesheet. */
 const FLOATING_ATTRIBUTE = 'data-capture-floating'
+
+/**
+ * Waits until every image, and every video poster, is decoded. An image
+ * reports `complete` once its bytes arrive, but Astro marks its images
+ * `decoding="async"`, so the first paint can land before the decode and show
+ * an empty plate or a lower-quality resample. Which frames caught that varied
+ * from run to run.
+ */
+async function decodeImages(page: Page) {
+  await page.evaluate(async (timeout) => {
+    const sources = [
+      ...document.images,
+      ...[...document.querySelectorAll<HTMLVideoElement>('video[poster]')].map(
+        (video) => {
+          const image = new Image()
+          image.src = video.poster
+          return image
+        },
+      ),
+    ]
+    const bounded = (image: HTMLImageElement) =>
+      Promise.race([
+        image.decode().catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, timeout)),
+      ])
+    await Promise.all(sources.map(bounded))
+  }, SETTLE_TIMEOUT)
+}
 
 /**
  * Brings the page to the state a reader arrives at, before anything is shot.
@@ -197,6 +241,7 @@ async function settle(
     undefined,
     { timeout: SETTLE_TIMEOUT },
   )
+  await decodeImages(page)
   return present
 }
 
@@ -246,27 +291,59 @@ async function resolveMask(
   return mask
 }
 
+/** How many times a frame is retaken while consecutive shots still differ. */
+const MAX_RETAKES = 4
+
+async function take(
+  page: Page,
+  mask: Locator[],
+  selector?: string,
+): Promise<Buffer> {
+  if (selector === undefined) {
+    return page.screenshot({ fullPage: true, mask })
+  }
+  // Floating chrome keeps the space it already occupies, so dropping it out
+  // of its own layer moves nothing and leaves every box the size it was.
+  return page.locator(selector).screenshot({
+    mask,
+    style: `[${FLOATING_ATTRIBUTE}] { position: static !important; }`,
+  })
+}
+
+/**
+ * Shoots one frame and writes it to every directory named. A second shot of
+ * an unchanged page came out a level or two apart on rounded edges, so a frame
+ * is retaken until two consecutive shots are byte-identical. The shots compare
+ * with each other and never with a committed frame, so a real change still
+ * lands. One shot feeds every copy, so the sweep frame and the evidence frame
+ * cannot disagree. A page that settles into the other state before the first
+ * shot is not caught, which the résumé 320 frame did in one capture of twenty.
+ */
 async function shoot(
   page: Page,
-  dir: string,
+  dirs: readonly string[],
   file: string,
   mask: Locator[],
   selector?: string,
 ) {
-  await mkdir(dir, { recursive: true })
-  const target = path.join(dir, file)
-  if (selector === undefined) {
-    await page.screenshot({ path: target, fullPage: true, mask })
-  } else {
-    // Floating chrome keeps the space it already occupies, so dropping it out
-    // of its own layer moves nothing and leaves every box the size it was.
-    await page.locator(selector).screenshot({
-      path: target,
-      mask,
-      style: `[${FLOATING_ATTRIBUTE}] { position: static !important; }`,
-    })
+  let frame = await take(page, mask, selector)
+  let settled = false
+  for (let retake = 0; retake < MAX_RETAKES && !settled; retake++) {
+    const next = await take(page, mask, selector)
+    settled = next.equals(frame)
+    frame = next
   }
-  console.log(`captured ${target}`)
+  if (!settled) {
+    console.warn(
+      `${file}: the frame never held still across ${MAX_RETAKES} retakes`,
+    )
+  }
+  for (const dir of dirs) {
+    await mkdir(dir, { recursive: true })
+    const target = path.join(dir, file)
+    await writeFile(target, frame)
+    console.log(`captured ${target}`)
+  }
 }
 
 const browser = await chromium.launch()
@@ -298,6 +375,10 @@ for (const { captureCase, viewport, label } of RUNS) {
 
   await page.goto(`${BASE_URL}${captureCase.route}`)
   await page.waitForLoadState('networkidle')
+  // A pointer resting in the page hovers whatever scrolls under it, and the
+  // hover crossfades a card's poster while a frame is being shot. Parked
+  // outside the viewport it hovers nothing, however the page scrolls.
+  await page.mouse.move(-1, -1)
 
   const named = (captureCase.sections ?? []).filter(
     ({ name }) => sectionTerms.length === 0 || sectionTerms.includes(name),
@@ -313,17 +394,20 @@ for (const { captureCase, viewport, label } of RUNS) {
   // A case naming sections is read through them, so its whole-page frame is
   // not written. A section missing from the page is skipped, not replaced.
   if (captureCase.sections === undefined) {
-    await shoot(page, sweepDir, file, mask)
-    if (writesEvidence) await shoot(page, evidenceDir, file, mask)
+    await shoot(
+      page,
+      writesEvidence ? [sweepDir, evidenceDir] : [sweepDir],
+      file,
+      mask,
+    )
   }
 
   if (sections.length > 0) await markFloatingChrome(page)
 
   for (const { name, selector } of sections) {
-    await shoot(page, path.join(sweepDir, name), file, mask, selector)
-    if (writesEvidence) {
-      await shoot(page, path.join(evidenceDir, name), file, mask, selector)
-    }
+    const dirs = [path.join(sweepDir, name)]
+    if (writesEvidence) dirs.push(path.join(evidenceDir, name))
+    await shoot(page, dirs, file, mask, selector)
   }
 
   await context.close()
