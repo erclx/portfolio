@@ -80,21 +80,15 @@ function attributeOf(
 const home = readPage('/')
 const FOOTER = '[data-section="footer"]'
 
-const CARD_NAMES = [
-  'canon',
-  'Frameboard',
-  'Stackr',
-  'Caret',
-  'Jobtriage',
-  'annex',
-]
+// Jobtriage and annex keep their routes and own no card, so a visitor reaches
+// them by URL alone.
+const CARD_NAMES = ['canon', 'Frameboard', 'Stackr', 'Caret']
+const CARD_ROUTES = ['/canon', '/frameboard', '/stackr', '/caret']
 const CARD_LINES = [
-  'A CLI and Claude Code plugin that runs AI coding agents through plan, build and review the same way in every repository.',
+  "A CLI and Claude Code plugin that runs an AI coding agent's work from plan to merge.",
   'A board where coding agents draw interfaces as plain HTML files.',
   'A VS Code extension that stages files across a workspace into one block of context for an AI chat.',
   'A Chrome extension that saves prompts and inserts them into Claude, Gemini and ChatGPT.',
-  "A job-search agent over Sweden's public job API that shows the ads that fit, each with a reason.",
-  'An agent that maps a described AI system to the EU AI Act articles that apply, cited to the text.',
 ]
 const CARD_SELECTOR = '#projects article'
 // One per beat in the timeline. The record is a local const inside the
@@ -109,12 +103,6 @@ const EMPLOYERS = [
 // carries a new-tab target while sitting behind a root-relative path. Only the
 // résumé route links it, and every other résumé control opens that route.
 const EXEMPT_INTERNAL_HREF = '/resume.pdf'
-
-function card(index: number): string {
-  const element = queryAll(home, CARD_SELECTOR)[index]
-  if (!element) throw new Error(`No project card at ${index}`)
-  return collapse(element.textContent)
-}
 
 function beatsNamed(name: string): Element[] {
   return queryAll(home, '#experience ol > li').filter((beat) =>
@@ -505,34 +493,6 @@ describe('the projects section', () => {
     expect(textOf(home, '#projects')).not.toContain('tools shipped')
   })
 
-  it('renders a poster on a card without a hover video', () => {
-    // The browser test also read the poster as visible, which a static file
-    // cannot state. This asserts the poster is in the markup and the video is not.
-    const annex = queryAll(home, CARD_SELECTOR).filter(
-      (element) =>
-        collapse(queryAll(element, 'h3')[0]?.textContent) === 'annex',
-    )
-
-    expect(annex).toHaveLength(1)
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-poster]')),
-    ).toHaveLength(1)
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-video]')),
-    ).toHaveLength(0)
-  })
-
-  it('renders a dark still on the annex card for the dark theme', () => {
-    const annex = queryAll(home, CARD_SELECTOR).filter(
-      (element) =>
-        collapse(queryAll(element, 'h3')[0]?.textContent) === 'annex',
-    )
-
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-poster-dark]')),
-    ).toHaveLength(1)
-  })
-
   it('pins each card description to its compass line', () => {
     const descriptions = queryAll(home, `${CARD_SELECTOR} h3 + p`).map((p) =>
       collapse(p.textContent),
@@ -581,16 +541,12 @@ describe('the projects section', () => {
     expect(overlays).toHaveLength(cards.length)
   })
 
-  it('names no provider the source leaves out on the Jobtriage card', () => {
-    expect(card(4)).toContain('Jobtriage')
+  it('links neither the Jobtriage nor the annex route from the home page', () => {
+    expect(queryAll(home, 'main a[href="/canon"]').length).toBeGreaterThan(0)
 
-    expect(card(4)).not.toContain('OpenAI')
-  })
-
-  it('opens the annex route from its card', () => {
-    expect(queryAll(home, '#projects a[href="/annex"]').length).toBeGreaterThan(
-      0,
-    )
+    expect(queryAll(home, 'a[href="/jobtriage"]')).toHaveLength(0)
+    expect(queryAll(home, 'a[href="/annex"]')).toHaveLength(0)
+    expect(queryAll(home, '#jobtriage, #annex')).toHaveLength(0)
   })
 
   it('links to the canon route from its card', () => {
@@ -606,7 +562,7 @@ describe('the projects section', () => {
       link.getAttribute('href'),
     )
 
-    expect(routes).toEqual(PROJECT_ROUTES)
+    expect(routes).toEqual(CARD_ROUTES)
   })
 
   it('drops the intro sentence the source removed', () => {

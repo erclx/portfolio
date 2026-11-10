@@ -1,18 +1,14 @@
 ---
-import annexPosterDark from '@/assets/projects/annex-dark.png'
-import annexPoster from '@/assets/projects/annex-light.png'
 import canonPosterDark from '@/assets/projects/canon-dark.png'
 import canonPoster from '@/assets/projects/canon-light.png'
 import caretPoster from '@/assets/projects/caret.png'
 import frameboardPosterDark from '@/assets/projects/frameboard-dark.png'
 import frameboardPoster from '@/assets/projects/frameboard-light.png'
-import jobtriagePoster from '@/assets/projects/jobtriage.png'
 import stackrPoster from '@/assets/projects/stackr.png'
 import canonVideo from '@/assets/videos/canon.mp4?url'
 import canonVideoLight from '@/assets/videos/canon-light.mp4?url'
 import caretVideo from '@/assets/videos/caret.mp4?url'
 import frameboardVideo from '@/assets/videos/frameboard.mp4?url'
-import jobtriageVideo from '@/assets/videos/jobtriage.mp4?url'
 import stackrVideo from '@/assets/videos/stackr.mp4?url'
 
 import ProjectCard from './project-card.astro'
@@ -26,7 +22,7 @@ const projects = [
     name: 'canon',
     route: '/canon',
     description:
-      'A CLI and Claude Code plugin that runs AI coding agents through plan, build and review the same way in every repository.',
+      "A CLI and Claude Code plugin that runs an AI coding agent's work from plan to merge.",
     poster: canonPoster,
     posterDark: canonPosterDark,
     videoSrc: canonVideoLight,
@@ -94,34 +90,6 @@ const projects = [
         href: 'https://chromewebstore.google.com/detail/caret/bpmdbibldelkpncegllkeegdpblgehgk',
       },
       { label: 'GitHub', href: 'https://github.com/erclx/caret' },
-    ],
-  },
-  {
-    name: 'Jobtriage',
-    route: '/jobtriage',
-    description:
-      "A job-search agent over Sweden's public job API that shows the ads that fit, each with a reason.",
-    poster: jobtriagePoster,
-    videoSrc: jobtriageVideo,
-    mediaAlt:
-      'Jobtriage, chat interface with retrieved ad cards on a React Flow canvas',
-    links: [
-      { label: 'Live demo', href: 'https://jobtriage.erclx.com' },
-      { label: 'GitHub', href: 'https://github.com/erclx/jobtriage' },
-    ],
-  },
-  {
-    name: 'annex',
-    route: '/annex',
-    description:
-      'An agent that maps a described AI system to the EU AI Act articles that apply, cited to the text.',
-    poster: annexPoster,
-    posterDark: annexPosterDark,
-    mediaAlt:
-      'The Annex landing page: a description box and twelve recorded questions',
-    links: [
-      { label: 'Recorded demo', href: 'https://annex.erclx.com' },
-      { label: 'GitHub', href: 'https://github.com/erclx/annex' },
     ],
   },
 ]
