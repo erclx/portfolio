@@ -27,6 +27,8 @@ const ROUTES = [
   'caret',
   'frameboard',
   'resume',
+  // The page Pages serves for an unknown path, reached here by its own file.
+  '404',
 ] as const
 
 /** The footer's build date moves on every build with no code change. */
