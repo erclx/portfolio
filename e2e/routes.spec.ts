@@ -13,6 +13,19 @@ const ROUTES = [
 
 const PHONE_WIDTH = 320
 
+test.describe('the 404 page', () => {
+  test('reveals its heading, since a hidden one paints only the ground', async ({
+    page,
+  }) => {
+    await page.goto('/404')
+
+    await expect(page.getByRole('heading', { level: 1 })).toHaveAttribute(
+      'data-visible',
+      'true',
+    )
+  })
+})
+
 test.describe('every route renders', () => {
   for (const route of ROUTES) {
     test(`${route} shows its heading with no console error`, async ({

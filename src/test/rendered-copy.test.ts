@@ -176,6 +176,35 @@ describe('a shared link', () => {
     expect(meta(doc, 'meta[property="og:image:alt"]')).toBeTruthy()
   })
 
+  it.each(ROUTES)('names one canonical address on %s', (route) => {
+    // Two tags carry the page's address and a host reads whichever it prefers,
+    // so a pair that disagrees splits one page across two URLs.
+    const doc = readPage(route)
+    const canonical = queryAll(doc, 'link[rel="canonical"]')
+
+    expect(canonical).toHaveLength(1)
+    expect(canonical[0]?.getAttribute('href')).toBe(
+      meta(doc, 'meta[property="og:url"]'),
+    )
+    // The form follows the folder Astro built, which is the one a visitor's
+    // browser lands on, with a slash after a route and none after the apex.
+    expect(new URL(canonical[0]?.getAttribute('href') ?? '').pathname).toBe(
+      route === '/' ? '/' : `${route}/`,
+    )
+  })
+
+  it.each(ROUTES)('names the site as erclx.com on %s', (route) => {
+    const doc = readPage(route)
+    const stale = queryAll(doc, 'head meta, head link').filter((tag) =>
+      Array.from(tag.attributes).some((attribute) =>
+        attribute.value.includes('erclx.dev'),
+      ),
+    )
+
+    expect(meta(doc, 'meta[property="og:site_name"]')).toBe('erclx.com')
+    expect(stale).toHaveLength(0)
+  })
+
   it('says something different in the title and the description', () => {
     const title = home.title.toLowerCase()
     const description = (
@@ -224,6 +253,56 @@ describe('a shared link', () => {
 
     expect(title.length).toBeGreaterThan(0)
     expect(title.toLowerCase()).not.toContain('case study')
+  })
+})
+
+describe('the 404 page', () => {
+  // Pages serves this file for a path with no file behind it. Without it the
+  // host assumes a single-page app and answers every unknown path with the
+  // homepage and a 200, which no other check on this site can see.
+  const NOT_FOUND = join(DIST, '404.html')
+
+  function readNotFound(): Document {
+    if (!existsSync(NOT_FOUND)) {
+      throw new Error(`No built page at ${NOT_FOUND}. Run bun run build first.`)
+    }
+    return new DOMParser().parseFromString(
+      readFileSync(NOT_FOUND, 'utf8'),
+      'text/html',
+    )
+  }
+
+  it('is built at the top level of the site', () => {
+    expect(existsSync(NOT_FOUND)).toBe(true)
+  })
+
+  it('names itself in a level-one heading', () => {
+    const doc = readNotFound()
+
+    expect(queryAll(doc, 'h1')).toHaveLength(1)
+    expect(textOf(doc, 'h1').length).toBeGreaterThan(0)
+  })
+
+  it('leads the visitor back to the landing page', () => {
+    expect(queryAll(readNotFound(), 'main ~ footer a[href="/"]')).toHaveLength(
+      1,
+    )
+  })
+
+  it('offers no control that scrolls a page with nothing to scroll', () => {
+    const doc = readNotFound()
+
+    expect(textOf(doc, 'header')).toContain('Not found')
+    expect(queryAll(doc, '[data-route-here]')).toHaveLength(0)
+  })
+
+  it('does not claim the landing page as its address', () => {
+    const doc = readNotFound()
+    const address = new URL(meta(doc, 'meta[property="og:url"]') ?? '')
+
+    expect(address.pathname).not.toBe('/')
+    expect(attributeOf(doc, 'link[rel="canonical"]', 'href')).toBe(address.href)
+    expect(doc.title).not.toBe(home.title)
   })
 })
 

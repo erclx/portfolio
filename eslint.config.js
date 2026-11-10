@@ -62,6 +62,14 @@ export default defineConfig([
     },
   },
   {
+    // Astro writes `404.html` from this exact filename, and Pages looks for
+    // that file by name, so kebab case cannot rename it.
+    files: ['src/pages/404.astro', 'src/pages/404.astro/*'],
+    rules: {
+      'check-file/filename-naming-convention': 'off',
+    },
+  },
+  {
     files: ['**/*.{jsx,tsx}'],
     plugins: {
       'react-hooks': reactHooks,
