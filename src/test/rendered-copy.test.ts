@@ -642,7 +642,7 @@ describe('a project route', () => {
     ],
     [
       '/frameboard',
-      'Frameboard is a local design board where my coding agents and I design together.',
+      'Frameboard is a local design board where my coding agents and I design interfaces together.',
     ],
     [
       '/stackr',
@@ -668,9 +668,16 @@ describe('a project route', () => {
     ['/caret', 'Published on the Chrome Web Store across four releases'],
     [
       '/jobtriage',
-      'Hybrid search found 95% of the relevant ads in its top ten results.',
+      'Live at jobtriage.erclx.com since May 2026, and open source on GitHub.',
     ],
-    ['/annex', 'Search plus cross-references found 83% of them'],
+    [
+      '/annex',
+      'The public page replays recorded answers, so anyone can see what it returns without running it.',
+    ],
+    [
+      '/canon',
+      'Each pull request comes with screenshots or a short clip of the change, and a reviewer that did not write the code reads it.',
+    ],
   ])('carries the source sections on %s', (route, sentence) => {
     expect(textOf(readPage(route), 'main')).toContain(sentence)
   })
@@ -686,19 +693,19 @@ describe('a project route', () => {
     ],
     [
       '/jobtriage',
-      "A job-search agent over Sweden's public JobTech API that turns a profile and a question into a visual shortlist, with its retrieval measured.",
+      "Jobtriage is a job-search agent over Sweden's public job ads that shows the ads that fit, each with a one-line reason.",
     ],
     [
       '/stackr',
-      'A VS Code extension that keeps named sets of files and copies each into an AI chat as one block, with the tree on top. On the Marketplace and Open VSX.',
+      'Stackr is a VS Code extension that copies named sets of files into an AI chat as one block, with the folder tree on top.',
     ],
     [
       '/caret',
-      'A prompt palette that opens where the cursor already is, on three chat sites that each handle text differently. A Chrome extension.',
+      'Caret is a Chrome extension that saves prompts and inserts them in Claude, Gemini and ChatGPT.',
     ],
     [
       '/annex',
-      'An agent for the EU AI Act that maps a system to the articles that apply, built to test whether retrieval still helps when the whole law fits in context.',
+      'annex is an agent that maps a described AI system to the EU AI Act articles that may apply, cited to the text.',
     ],
   ])('carries the source description on %s', (route, description) => {
     expect(meta(readPage(route), 'meta[name="description"]')).toBe(description)
