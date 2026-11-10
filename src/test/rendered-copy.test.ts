@@ -387,10 +387,10 @@ describe('the experience section', () => {
       volvoBeats.flatMap((beat) => queryAll(beat, '.experience-detail')),
     ).toHaveLength(1)
     expect(textOf(home, '#experience')).toContain(
-      'Built an agent that let test engineers get plots and figures from their truck test data',
+      'An AI agent for engineers’ test data, from a prototype in my master’s thesis to a tool deployed on the single cylinder team’s database.',
     )
     expect(textOf(home, '#experience')).toContain(
-      'Presented it remotely at Generative AI for Automotive USA 2024',
+      'I presented it remotely at Generative AI for Automotive USA 2024',
     )
   })
 
@@ -419,6 +419,12 @@ describe('the experience section', () => {
     expect(beatsNamed('bac ha software')).toHaveLength(1)
     expect(dates).toHaveLength(1)
     expect(collapse(dates[0]?.textContent ?? '')).toContain('2023')
+  })
+
+  it('states the GAN work as the source words it', () => {
+    expect(textOf(home, '#experience')).toContain(
+      'Reproduced published GAN models in TensorFlow and trained them from scratch on the company’s GPU server.',
+    )
   })
 
   it('names the field of the degree', () => {
