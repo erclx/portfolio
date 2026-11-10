@@ -617,8 +617,9 @@ describe('the projects section', () => {
 describe('the closing ask', () => {
   it('states the one sentence the source carries', () => {
     expect(textOf(home, '#looking-for')).toContain(
-      'Open to developer roles in Gothenburg or remote, full-time or contract.',
+      'Open to developer roles in Gothenburg or remote.',
     )
+    expect(textOf(home, '#looking-for')).not.toContain('full-time or contract')
   })
 
   it('carries no criteria list the source dropped', () => {
