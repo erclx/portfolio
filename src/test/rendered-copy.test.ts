@@ -725,7 +725,7 @@ describe('a project route', () => {
     ],
     [
       '/stackr',
-      'Stackr is a VS Code extension that keeps named sets of files and copies each one into an AI chat as a single block, with the directory tree on top.',
+      'Stackr is a VS Code extension that keeps named sets of files and copies each one into an AI chat as a single block, with the folder tree on top.',
     ],
     [
       '/caret',
@@ -780,7 +780,7 @@ describe('a project route', () => {
     ],
     [
       '/caret',
-      'Caret is a Chrome extension that saves prompts and inserts them in Claude, Gemini and ChatGPT.',
+      'Caret is a Chrome extension that saves prompts and inserts them into Claude, Gemini and ChatGPT.',
     ],
     [
       '/annex',
