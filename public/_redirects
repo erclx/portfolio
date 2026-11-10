@@ -1,2 +1,4 @@
 /aitk  /canon  301
 /aitk/*  /canon/:splat  301
+/projects  /  301
+/projects/*  /:splat  301
