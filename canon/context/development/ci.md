@@ -11,6 +11,10 @@ Owns the GitHub Actions workflows that gate a merge and keep the committed scree
 
 The workflows install Node 22 before Bun, since Astro 6 and Vitest 5 need Node 22.12 or later and the `astro` binary runs under a system Node. `bun run check` runs the same asserts locally and writes nothing.
 
+### Runner image
+
+The `e2e-tests` job pins `runs-on: ubuntu-24.04` while every other job tracks `ubuntu-latest`. Playwright 1.59 refuses to install a browser on Ubuntu 26.04, so the pin lifts when Playwright is next bumped.
+
 ## Layout
 
 ### `.github/workflows/`
