@@ -139,7 +139,9 @@ jobs:
 
   e2e-tests:
     name: 🎭 E2E Tests (${{ matrix.browser }})
-    runs-on: ubuntu-latest
+    # Playwright 1.59 rejects Ubuntu 26.04, which ubuntu-latest now resolves to.
+    # Lift this pin when Playwright is next bumped.
+    runs-on: ubuntu-24.04
     needs: [static-checks, unit-tests, build-verify]
     strategy:
       # Three engines where the toolkit runs chromium alone, since firefox and
