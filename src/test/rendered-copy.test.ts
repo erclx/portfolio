@@ -188,6 +188,35 @@ describe('a shared link', () => {
     expect(meta(doc, 'meta[property="og:image:alt"]')).toBeTruthy()
   })
 
+  it.each(ROUTES)('names one canonical address on %s', (route) => {
+    // Two tags carry the page's address and a host reads whichever it prefers,
+    // so a pair that disagrees splits one page across two URLs.
+    const doc = readPage(route)
+    const canonical = queryAll(doc, 'link[rel="canonical"]')
+
+    expect(canonical).toHaveLength(1)
+    expect(canonical[0]?.getAttribute('href')).toBe(
+      meta(doc, 'meta[property="og:url"]'),
+    )
+    // The form follows the folder Astro built, which is the one a visitor's
+    // browser lands on, with a slash after a route and none after the apex.
+    expect(new URL(canonical[0]?.getAttribute('href') ?? '').pathname).toBe(
+      route === '/' ? '/' : `${route}/`,
+    )
+  })
+
+  it.each(ROUTES)('names the site as erclx.com on %s', (route) => {
+    const doc = readPage(route)
+    const stale = queryAll(doc, 'head meta, head link').filter((tag) =>
+      Array.from(tag.attributes).some((attribute) =>
+        attribute.value.includes('erclx.dev'),
+      ),
+    )
+
+    expect(meta(doc, 'meta[property="og:site_name"]')).toBe('erclx.com')
+    expect(stale).toHaveLength(0)
+  })
+
   it('says something different in the title and the description', () => {
     const title = home.title.toLowerCase()
     const description = (
