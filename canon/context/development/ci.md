@@ -15,6 +15,13 @@ The workflows install Node 22 before Bun, since Astro 6 and Vitest 5 need Node 2
 
 The `e2e-tests` job pins `runs-on: ubuntu-24.04` while every other job tracks `ubuntu-latest`. Playwright 1.59 refuses to install a browser on Ubuntu 26.04, so the pin lifts when Playwright is next bumped.
 
+### Dependency updates
+
+Dependabot opens one grouped npm pull request a month, minor and patch only, and ignores every major, so a major stays a deliberate row. The `github-actions` group is separate, so one red run cannot block the other.
+
+- The `@erclx/canon` pin in `check:record` is a script string Dependabot cannot read, so a person raises it with the plugin
+- A bump to an exact formatter pin that reflows files fails `check:format` in the pull request, so push a `bun run format` commit to its branch
+
 ## Layout
 
 ### `.github/workflows/`

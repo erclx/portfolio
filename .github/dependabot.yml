@@ -1,8 +1,6 @@
 version: 2
 updates:
-  # Actions only, monthly and grouped into one pull request. npm updates are
-  # left to `bun update` by hand, since each one would run the full CI for a
-  # site that publishes nothing.
+  # Actions, monthly and grouped into one pull request.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -13,3 +11,21 @@ updates:
           - '*'
     commit-message:
       prefix: ci
+  # npm is watched monthly, minor and patch only, in one grouped pull request.
+  # Majors are ignored since Astro, TypeScript, and Vitest majors each need a
+  # build row, and a red run inside a group is hard to attribute.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      bun:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - version-update:semver-major
+    commit-message:
+      prefix: build(deps)
