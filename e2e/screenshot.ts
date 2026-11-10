@@ -88,10 +88,17 @@ const sectionTerms = SCREENSHOT_SECTIONS.split(',')
   .map((term) => term.trim())
   .filter(Boolean)
 
+/**
+ * A name a narrowed run accepts is either a section of a case that names
+ * sections, or the `section` of a case that names none, which is a route
+ * captured whole in one frame.
+ */
 const SECTION_NAMES = [
   ...new Set(
     CASES.flatMap((captureCase) =>
-      (captureCase.sections ?? []).map((section) => section.name),
+      captureCase.sections === undefined
+        ? [captureCase.section]
+        : captureCase.sections.map((section) => section.name),
     ),
   ),
 ]
@@ -109,7 +116,16 @@ if (unknownSections.length > 0) {
   process.exit(1)
 }
 
-/** A case with no sections has nothing a section filter could name, so a narrowed run skips it. */
+/**
+ * A case naming sections is selected by a section name it carries, and a case
+ * naming none by its own `section`, so a route is nameable the way a home
+ * section is.
+ */
+const selectedBySection = (captureCase: CaptureCase): boolean =>
+  captureCase.sections === undefined
+    ? sectionTerms.includes(captureCase.section)
+    : captureCase.sections.some(({ name }) => sectionTerms.includes(name))
+
 const FILTERED_RUNS =
   filterTerms.length > 0
     ? ALL_RUNS.filter((run) =>
@@ -119,7 +135,7 @@ const FILTERED_RUNS =
 
 const RUNS =
   sectionTerms.length > 0
-    ? FILTERED_RUNS.filter((run) => (run.captureCase.sections ?? []).length > 0)
+    ? FILTERED_RUNS.filter((run) => selectedBySection(run.captureCase))
     : FILTERED_RUNS
 
 if ((filterTerms.length > 0 || sectionTerms.length > 0) && RUNS.length === 0) {
