@@ -256,6 +256,49 @@ describe('a shared link', () => {
   })
 })
 
+describe('the 404 page', () => {
+  // Pages serves this file for a path with no file behind it. Without it the
+  // host assumes a single-page app and answers every unknown path with the
+  // homepage and a 200, which no other check on this site can see.
+  const NOT_FOUND = join(DIST, '404.html')
+
+  function readNotFound(): Document {
+    if (!existsSync(NOT_FOUND)) {
+      throw new Error(`No built page at ${NOT_FOUND}. Run bun run build first.`)
+    }
+    return new DOMParser().parseFromString(
+      readFileSync(NOT_FOUND, 'utf8'),
+      'text/html',
+    )
+  }
+
+  it('is built at the top level of the site', () => {
+    expect(existsSync(NOT_FOUND)).toBe(true)
+  })
+
+  it('names itself in a level-one heading', () => {
+    const doc = readNotFound()
+
+    expect(queryAll(doc, 'h1')).toHaveLength(1)
+    expect(textOf(doc, 'h1').length).toBeGreaterThan(0)
+  })
+
+  it('leads the visitor back to the landing page', () => {
+    expect(queryAll(readNotFound(), 'main ~ footer a[href="/"]')).toHaveLength(
+      1,
+    )
+  })
+
+  it('does not claim the landing page as its address', () => {
+    const doc = readNotFound()
+    const address = new URL(meta(doc, 'meta[property="og:url"]') ?? '')
+
+    expect(address.pathname).not.toBe('/')
+    expect(attributeOf(doc, 'link[rel="canonical"]', 'href')).toBe(address.href)
+    expect(doc.title).not.toBe(home.title)
+  })
+})
+
 describe('the header', () => {
   it('names the person in the level-one heading', () => {
     expect(queryAll(home, 'h1')).toHaveLength(1)
