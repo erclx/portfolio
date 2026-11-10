@@ -80,21 +80,15 @@ function attributeOf(
 const home = readPage('/')
 const FOOTER = '[data-section="footer"]'
 
-const CARD_NAMES = [
-  'canon',
-  'Frameboard',
-  'Stackr',
-  'Caret',
-  'Jobtriage',
-  'annex',
-]
+// Jobtriage and annex keep their routes and own no card, so a visitor reaches
+// them by URL alone.
+const CARD_NAMES = ['canon', 'Frameboard', 'Stackr', 'Caret']
+const CARD_ROUTES = ['/canon', '/frameboard', '/stackr', '/caret']
 const CARD_LINES = [
-  'A CLI and Claude Code plugin that runs AI coding agents through plan, build and review the same way in every repository.',
+  "A CLI and Claude Code plugin that runs an AI coding agent's work from plan to merge.",
   'A board where coding agents draw interfaces as plain HTML files.',
   'A VS Code extension that stages files across a workspace into one block of context for an AI chat.',
   'A Chrome extension that saves prompts and inserts them into Claude, Gemini and ChatGPT.',
-  "A job-search agent over Sweden's public job API that shows the ads that fit, each with a reason.",
-  'An agent that maps a described AI system to the EU AI Act articles that apply, cited to the text.',
 ]
 const CARD_SELECTOR = '#projects article'
 // One per beat in the timeline. The record is a local const inside the
@@ -109,12 +103,6 @@ const EMPLOYERS = [
 // carries a new-tab target while sitting behind a root-relative path. Only the
 // résumé route links it, and every other résumé control opens that route.
 const EXEMPT_INTERNAL_HREF = '/resume.pdf'
-
-function card(index: number): string {
-  const element = queryAll(home, CARD_SELECTOR)[index]
-  if (!element) throw new Error(`No project card at ${index}`)
-  return collapse(element.textContent)
-}
 
 function beatsNamed(name: string): Element[] {
   return queryAll(home, '#experience ol > li').filter((beat) =>
@@ -387,10 +375,10 @@ describe('the experience section', () => {
       volvoBeats.flatMap((beat) => queryAll(beat, '.experience-detail')),
     ).toHaveLength(1)
     expect(textOf(home, '#experience')).toContain(
-      'Built an agent that let test engineers get plots and figures from their truck test data',
+      'An AI agent for engineers’ test data, from a prototype in my master’s thesis to a tool deployed on the single cylinder team’s database.',
     )
     expect(textOf(home, '#experience')).toContain(
-      'Presented it remotely at Generative AI for Automotive USA 2024',
+      'I presented it remotely at Generative AI for Automotive USA 2024',
     )
   })
 
@@ -419,6 +407,12 @@ describe('the experience section', () => {
     expect(beatsNamed('bac ha software')).toHaveLength(1)
     expect(dates).toHaveLength(1)
     expect(collapse(dates[0]?.textContent ?? '')).toContain('2023')
+  })
+
+  it('states the GAN work as the source words it', () => {
+    expect(textOf(home, '#experience')).toContain(
+      'Reproduced published GAN models in TensorFlow and trained them from scratch on the company’s GPU server.',
+    )
   })
 
   it('names the field of the degree', () => {
@@ -499,34 +493,6 @@ describe('the projects section', () => {
     expect(textOf(home, '#projects')).not.toContain('tools shipped')
   })
 
-  it('renders a poster on a card without a hover video', () => {
-    // The browser test also read the poster as visible, which a static file
-    // cannot state. This asserts the poster is in the markup and the video is not.
-    const annex = queryAll(home, CARD_SELECTOR).filter(
-      (element) =>
-        collapse(queryAll(element, 'h3')[0]?.textContent) === 'annex',
-    )
-
-    expect(annex).toHaveLength(1)
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-poster]')),
-    ).toHaveLength(1)
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-video]')),
-    ).toHaveLength(0)
-  })
-
-  it('renders a dark still on the annex card for the dark theme', () => {
-    const annex = queryAll(home, CARD_SELECTOR).filter(
-      (element) =>
-        collapse(queryAll(element, 'h3')[0]?.textContent) === 'annex',
-    )
-
-    expect(
-      annex.flatMap((element) => queryAll(element, '[data-media-poster-dark]')),
-    ).toHaveLength(1)
-  })
-
   it('pins each card description to its compass line', () => {
     const descriptions = queryAll(home, `${CARD_SELECTOR} h3 + p`).map((p) =>
       collapse(p.textContent),
@@ -575,16 +541,12 @@ describe('the projects section', () => {
     expect(overlays).toHaveLength(cards.length)
   })
 
-  it('names no provider the source leaves out on the Jobtriage card', () => {
-    expect(card(4)).toContain('Jobtriage')
+  it('links neither the Jobtriage nor the annex route from the home page', () => {
+    expect(queryAll(home, 'main a[href="/canon"]').length).toBeGreaterThan(0)
 
-    expect(card(4)).not.toContain('OpenAI')
-  })
-
-  it('opens the annex route from its card', () => {
-    expect(queryAll(home, '#projects a[href="/annex"]').length).toBeGreaterThan(
-      0,
-    )
+    expect(queryAll(home, 'a[href="/jobtriage"]')).toHaveLength(0)
+    expect(queryAll(home, 'a[href="/annex"]')).toHaveLength(0)
+    expect(queryAll(home, '#jobtriage, #annex')).toHaveLength(0)
   })
 
   it('links to the canon route from its card', () => {
@@ -600,7 +562,7 @@ describe('the projects section', () => {
       link.getAttribute('href'),
     )
 
-    expect(routes).toEqual(PROJECT_ROUTES)
+    expect(routes).toEqual(CARD_ROUTES)
   })
 
   it('drops the intro sentence the source removed', () => {
@@ -611,8 +573,9 @@ describe('the projects section', () => {
 describe('the closing ask', () => {
   it('states the one sentence the source carries', () => {
     expect(textOf(home, '#looking-for')).toContain(
-      'Open to developer roles in Gothenburg or remote, full-time or contract.',
+      'Open to developer roles in Gothenburg or remote.',
     )
+    expect(textOf(home, '#looking-for')).not.toContain('full-time or contract')
   })
 
   it('carries no criteria list the source dropped', () => {
@@ -679,7 +642,7 @@ describe('a project route', () => {
     ],
     [
       '/frameboard',
-      'Frameboard is a local design board where my coding agents and I design together.',
+      'Frameboard is a local design board where my coding agents and I design interfaces together.',
     ],
     [
       '/stackr',
@@ -705,9 +668,16 @@ describe('a project route', () => {
     ['/caret', 'Published on the Chrome Web Store across four releases'],
     [
       '/jobtriage',
-      'Hybrid search found 95% of the relevant ads in its top ten results.',
+      'Live at jobtriage.erclx.com since May 2026, and open source on GitHub.',
     ],
-    ['/annex', 'Search plus cross-references found 83% of them'],
+    [
+      '/annex',
+      'The public page replays recorded answers, so anyone can see what it returns without running it.',
+    ],
+    [
+      '/canon',
+      'Each pull request comes with screenshots or a short clip of the change, and a reviewer that did not write the code reads it.',
+    ],
   ])('carries the source sections on %s', (route, sentence) => {
     expect(textOf(readPage(route), 'main')).toContain(sentence)
   })
@@ -723,19 +693,19 @@ describe('a project route', () => {
     ],
     [
       '/jobtriage',
-      "A job-search agent over Sweden's public JobTech API that turns a profile and a question into a visual shortlist, with its retrieval measured.",
+      "Jobtriage is a job-search agent over Sweden's public job ads that shows the ads that fit, each with a one-line reason.",
     ],
     [
       '/stackr',
-      'A VS Code extension that keeps named sets of files and copies each into an AI chat as one block, with the tree on top. On the Marketplace and Open VSX.',
+      'Stackr is a VS Code extension that copies named sets of files into an AI chat as one block, with the folder tree on top.',
     ],
     [
       '/caret',
-      'A prompt palette that opens where the cursor already is, on three chat sites that each handle text differently. A Chrome extension.',
+      'Caret is a Chrome extension that saves prompts and inserts them in Claude, Gemini and ChatGPT.',
     ],
     [
       '/annex',
-      'An agent for the EU AI Act that maps a system to the articles that apply, built to test whether retrieval still helps when the whole law fits in context.',
+      'annex is an agent that maps a described AI system to the EU AI Act articles that may apply, cited to the text.',
     ],
   ])('carries the source description on %s', (route, description) => {
     expect(meta(readPage(route), 'meta[name="description"]')).toBe(description)

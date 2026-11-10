@@ -29,7 +29,7 @@ const heroImageClass = 'block h-auto w-full'
 
 <BaseLayout
   title="annex · Eric Le"
-  description="An agent for the EU AI Act that maps a system to the articles that apply, built to test whether retrieval still helps when the whole law fits in context."
+  description="annex is an agent that maps a described AI system to the EU AI Act articles that may apply, cited to the text."
   surface="case-study"
 >
   <RouteBar here="annex" items={navItems} />
@@ -117,10 +117,8 @@ const heroImageClass = 'block h-auto w-full'
           how it works
         </h2>
         <p data-fade class="text-foreground text-lede mt-6">
-          I compared three ways of finding the text on the same twelve
-          questions. One read the whole Act in context, one used vector search,
-          and one followed vector search with the Act's own cross-references. It
-          runs fully local on Ollama.
+          It searches the Act and follows its own cross-references, and runs
+          fully local on Ollama.
         </p>
       </div>
     </section>
@@ -134,9 +132,8 @@ const heroImageClass = 'block h-auto w-full'
           what it shows
         </h2>
         <p data-fade class="text-foreground text-lede mt-6">
-          Reading the whole Act found every article the answers needed. Search
-          plus cross-references found 83% of them with about a seventh of the
-          prompt tokens, and showed which text it used.
+          The public page replays recorded answers, so anyone can see what it
+          returns without running it. The code is open on GitHub.
         </p>
       </div>
     </section>
