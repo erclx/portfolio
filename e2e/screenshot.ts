@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 import { chromium } from '@playwright/test'
 import { existsSync } from 'fs'
-import { mkdir } from 'fs/promises'
+import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { pathToFileURL } from 'url'
 
@@ -291,27 +291,59 @@ async function resolveMask(
   return mask
 }
 
+/** How many times a frame is retaken while consecutive shots still differ. */
+const MAX_RETAKES = 4
+
+async function take(
+  page: Page,
+  mask: Locator[],
+  selector?: string,
+): Promise<Buffer> {
+  if (selector === undefined) {
+    return page.screenshot({ fullPage: true, mask })
+  }
+  // Floating chrome keeps the space it already occupies, so dropping it out
+  // of its own layer moves nothing and leaves every box the size it was.
+  return page.locator(selector).screenshot({
+    mask,
+    style: `[${FLOATING_ATTRIBUTE}] { position: static !important; }`,
+  })
+}
+
+/**
+ * Shoots one frame and writes it to every directory named. A second shot of
+ * an unchanged page came out a level or two apart on rounded edges, so a frame
+ * is retaken until two consecutive shots are byte-identical. The shots compare
+ * with each other and never with a committed frame, so a real change still
+ * lands. One shot feeds every copy, so the sweep frame and the evidence frame
+ * cannot disagree. A page that settles into the other state before the first
+ * shot is not caught, which the résumé 320 frame did in one capture of twenty.
+ */
 async function shoot(
   page: Page,
-  dir: string,
+  dirs: readonly string[],
   file: string,
   mask: Locator[],
   selector?: string,
 ) {
-  await mkdir(dir, { recursive: true })
-  const target = path.join(dir, file)
-  if (selector === undefined) {
-    await page.screenshot({ path: target, fullPage: true, mask })
-  } else {
-    // Floating chrome keeps the space it already occupies, so dropping it out
-    // of its own layer moves nothing and leaves every box the size it was.
-    await page.locator(selector).screenshot({
-      path: target,
-      mask,
-      style: `[${FLOATING_ATTRIBUTE}] { position: static !important; }`,
-    })
+  let frame = await take(page, mask, selector)
+  let settled = false
+  for (let retake = 0; retake < MAX_RETAKES && !settled; retake++) {
+    const next = await take(page, mask, selector)
+    settled = next.equals(frame)
+    frame = next
   }
-  console.log(`captured ${target}`)
+  if (!settled) {
+    console.warn(
+      `${file}: the frame never held still across ${MAX_RETAKES} retakes`,
+    )
+  }
+  for (const dir of dirs) {
+    await mkdir(dir, { recursive: true })
+    const target = path.join(dir, file)
+    await writeFile(target, frame)
+    console.log(`captured ${target}`)
+  }
 }
 
 const browser = await chromium.launch()
@@ -362,17 +394,20 @@ for (const { captureCase, viewport, label } of RUNS) {
   // A case naming sections is read through them, so its whole-page frame is
   // not written. A section missing from the page is skipped, not replaced.
   if (captureCase.sections === undefined) {
-    await shoot(page, sweepDir, file, mask)
-    if (writesEvidence) await shoot(page, evidenceDir, file, mask)
+    await shoot(
+      page,
+      writesEvidence ? [sweepDir, evidenceDir] : [sweepDir],
+      file,
+      mask,
+    )
   }
 
   if (sections.length > 0) await markFloatingChrome(page)
 
   for (const { name, selector } of sections) {
-    await shoot(page, path.join(sweepDir, name), file, mask, selector)
-    if (writesEvidence) {
-      await shoot(page, path.join(evidenceDir, name), file, mask, selector)
-    }
+    const dirs = [path.join(sweepDir, name)]
+    if (writesEvidence) dirs.push(path.join(evidenceDir, name))
+    await shoot(page, dirs, file, mask, selector)
   }
 
   await context.close()
