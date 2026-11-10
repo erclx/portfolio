@@ -35,4 +35,14 @@ import BaseLayout from '@/layouts/base.astro'
   </main>
 
   <RouteFoot />
+
+  {
+    /* The page's `data-fade` elements start hidden once script runs, and
+      nothing else here reveals them. */
+  }
+  <script>
+    import { initReveal } from '@/lib/reveal'
+
+    initReveal()
+  </script>
 </BaseLayout>
